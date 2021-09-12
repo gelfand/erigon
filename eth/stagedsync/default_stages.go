@@ -161,6 +161,7 @@ func DefaultStages(ctx context.Context,
 		{
 			ID:          stages.HashState,
 			Description: "Hash the key in the state",
+			Disabled:    true,
 			Forward: func(firstCycle bool, badBlockUnwind bool, s *StageState, u Unwinder, tx kv.RwTx) error {
 				return SpawnHashStateStage(s, tx, hashState, ctx)
 			},
@@ -174,6 +175,7 @@ func DefaultStages(ctx context.Context,
 		{
 			ID:          stages.IntermediateHashes,
 			Description: "Generate intermediate hashes and computing state root",
+			Disabled:    true,
 			Forward: func(firstCycle bool, badBlockUnwind bool, s *StageState, u Unwinder, tx kv.RwTx) error {
 				_, err := SpawnIntermediateHashesStage(s, u, tx, trieCfg, ctx)
 				return err
@@ -189,6 +191,7 @@ func DefaultStages(ctx context.Context,
 			ID:                  stages.CallTraces,
 			Description:         "Generate call traces index",
 			DisabledDescription: "Work In Progress",
+			Disabled:            true,
 			Forward: func(firstCycle bool, badBlockUnwind bool, s *StageState, u Unwinder, tx kv.RwTx) error {
 				return SpawnCallTraces(s, tx, callTraces, ctx)
 			},
@@ -202,6 +205,7 @@ func DefaultStages(ctx context.Context,
 		{
 			ID:          stages.AccountHistoryIndex,
 			Description: "Generate account history index",
+			Disabled:    true,
 			Forward: func(firstCycle bool, badBlockUnwind bool, s *StageState, u Unwinder, tx kv.RwTx) error {
 				return SpawnAccountHistoryIndex(s, tx, history, ctx)
 			},
@@ -215,6 +219,7 @@ func DefaultStages(ctx context.Context,
 		{
 			ID:          stages.StorageHistoryIndex,
 			Description: "Generate storage history index",
+			Disabled:    true,
 			Forward: func(firstCycle bool, badBlockUnwind bool, s *StageState, u Unwinder, tx kv.RwTx) error {
 				return SpawnStorageHistoryIndex(s, tx, history, ctx)
 			},
@@ -228,6 +233,7 @@ func DefaultStages(ctx context.Context,
 		{
 			ID:          stages.LogIndex,
 			Description: "Generate receipt logs index",
+			Disabled:    true,
 			Forward: func(firstCycle bool, badBlockUnwind bool, s *StageState, u Unwinder, tx kv.RwTx) error {
 				return SpawnLogIndex(s, tx, logIndex, ctx)
 			},
