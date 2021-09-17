@@ -75,7 +75,6 @@ func (api *APIImpl) NewPendingTransactions(ctx context.Context) (*rpc.Subscripti
 	if !supported {
 		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
 	}
-
 	rpcSub := notifier.CreateSubscription()
 
 	go func() {
