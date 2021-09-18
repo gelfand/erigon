@@ -12,14 +12,13 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/puzpuzpuz/xsync"
-
 	"github.com/ledgerwatch/erigon-lib/gointerfaces/remote"
 	"github.com/ledgerwatch/erigon-lib/gointerfaces/txpool"
 	"github.com/ledgerwatch/erigon/cmd/rpcdaemon/services"
 	"github.com/ledgerwatch/erigon/core/types"
 	"github.com/ledgerwatch/erigon/rlp"
 	"github.com/ledgerwatch/log/v3"
+	"github.com/puzpuzpuz/xsync"
 	"go.uber.org/atomic"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -38,7 +37,6 @@ type Filters struct {
 	wg sync.WaitGroup
 
 	pendingBlock atomic.UnsafePointer
-	// pendingBlock *types.Block
 
 	headsSubs        xsync.Map
 	pendingLogsSubs  xsync.Map
@@ -49,8 +47,9 @@ type Filters struct {
 func New(ctx context.Context, ethBackend services.ApiBackend, txPool txpool.TxpoolClient, mining txpool.MiningClient) *Filters {
 	log.Info("rpc filters: subscribing to Erigon events")
 	ff := &Filters{
-		wg:               sync.WaitGroup{},
-		pendingBlock:     atomic.UnsafePointer{},
+		wg:           sync.WaitGroup{},
+		pendingBlock: atomic.UnsafePointer{},
+
 		headsSubs:        *xsync.NewMap(),
 		pendingLogsSubs:  *xsync.NewMap(),
 		pendingBlockSubs: *xsync.NewMap(),
@@ -243,17 +242,6 @@ func (ff *Filters) HandlePendingBlock(reply *txpool.OnPendingBlockReply) {
 		return true
 	})
 	ff.wg.Wait()
-
-	// ff.pendingBlockSubs.Range(func(_, value interface{}) bool {
-	// 	ff.wg.Add(1)
-	// 	ch := value.(chan *types.Block)
-	// 	go func() {
-	// 		defer ff.wg.Done()
-	// 		ch <- b
-	// 	}()
-	// 	return true
-	// })
-	// ff.wg.Wait()
 }
 
 func (ff *Filters) subscribeToPendingLogs(ctx context.Context, mining txpool.MiningClient) error {
@@ -267,7 +255,6 @@ func (ff *Filters) subscribeToPendingLogs(ctx context.Context, mining txpool.Min
 			return nil
 		default:
 		}
-
 		event, err := subscription.Recv()
 		if err == io.EOF {
 			log.Info("rpcdaemon: the subscription channel was closed")
@@ -276,7 +263,6 @@ func (ff *Filters) subscribeToPendingLogs(ctx context.Context, mining txpool.Min
 		if err != nil {
 			return err
 		}
-
 		ff.HandlePendingLogs(event)
 	}
 	return nil
@@ -287,7 +273,6 @@ func (ff *Filters) HandlePendingLogs(reply *txpool.OnPendingLogsReply) {
 	if err := rlp.Decode(bytes.NewReader(reply.RplLogs), &l); err != nil {
 		log.Warn("OnNewTx rpc filters, unprocessable payload", "err", err)
 	}
-
 	ff.pendingLogsSubs.Range(func(_ string, value interface{}) bool {
 		ff.wg.Add(1)
 		ch := value.(chan types.Logs)
@@ -297,17 +282,6 @@ func (ff *Filters) HandlePendingLogs(reply *txpool.OnPendingLogsReply) {
 		}()
 		return true
 	})
-
-	// ff.pendingLogsSubs.Range(func(_, value interface{}) bool {
-	// 	ff.wg.Add(1)
-	// 	ch := value.(chan types.Logs)
-	// 	go func() {
-	// 		defer ff.wg.Done()
-	// 		ch <- l
-	// 	}()
-	// 	return true
-	// })
-	// ff.wg.Wait()
 }
 
 func (ff *Filters) SubscribeNewHeads(out chan *types.Header) HeadsSubID {
