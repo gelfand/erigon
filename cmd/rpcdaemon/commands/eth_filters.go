@@ -98,6 +98,5 @@ func (api *APIImpl) NewPendingTransactions(ctx context.Context) (*rpc.Subscripti
 			}
 		}
 	}()
-
 	return rpcSub, nil
 }
